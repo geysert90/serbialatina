@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "events:dry-run": "python3 scripts/sync_mojnovisad_events.py --dry-run --limit 5",
+    "events:sync": "python3 scripts/sync_mojnovisad_events.py --publish --limit 20",
+    "news:dry-run": "python3 scripts/sync_serbian_news.py --dry-run --limit 20",
+    "news:sync": "python3 scripts/sync_serbian_news.py --limit 20"
   },
   "dependencies": {
     "next": "16.2.4",

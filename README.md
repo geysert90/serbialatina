@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Serbia Latina Frontend
 
-## Getting Started
+Frontend en Next.js 16 conectado a `admin.segun2idioma.com` vía WordPress REST API.
 
-First, run the development server:
+## Qué hace
+
+- Consume entradas, páginas, categorías y autores desde WordPress.
+- Renderiza portada dinámica, archivos por categoría y rutas para entradas y páginas.
+- Muestra ofertas laborales desde Jooble en `/trabajos` y un bloque de últimos trabajos en la portada; la búsqueda usa ciudades de Serbia con Belgrado como ubicación inicial.
+- Usa navegación automática basada en contenido público.
+- Soporta menús protegidos de WordPress si defines usuario + application password.
+
+## Variables
+
+Parte de `.env.example`:
+
+```bash
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_WORDPRESS_API_URL=https://admin.segun2idioma.com/wp-json
+WORDPRESS_API_USERNAME=
+WORDPRESS_API_PASSWORD=
+JOOBLE_API_KEY=
+```
+
+`WORDPRESS_API_USERNAME` es necesario si quieres leer menús protegidos. Con solo el endpoint público, el sitio ya levanta y consume posts, páginas, categorías y usuarios públicos.
+
+`JOOBLE_API_KEY` debe quedarse solo en el entorno del servidor. No uses prefijo `NEXT_PUBLIC_`; la ruta `/trabajos` consulta Jooble desde Server Components y cachea los resultados por horas para reducir consumo del límite de solicitudes.
+
+## Desarrollo
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Rutas principales
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `/` portada editorial
+- `/entradas/[slug]` detalle de posts
+- `/categorias/[slug]` archivo por categoría
+- `/trabajos` buscador de ofertas de Jooble
+- `/paginas/[slug]` páginas fijas de WordPress
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Validación
 
-## Learn More
+```bash
+npm run lint
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Estado actual del backend detectado el 24 de abril de 2026
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Categorías públicas: `Noticias`, `Trabajos`, `Sin categoría`
+- Páginas públicas: `Página de ejemplo`
+- Autores públicos visibles
+- Autenticación verificada para el usuario `darkness`
+- La colección `menus` responde, pero actualmente está vacía
