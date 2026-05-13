@@ -330,6 +330,15 @@ button {
   animation: cart-bounce 0.5s ease-out;
 }
 
+@keyframes shine {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.animate-shine {
+  animation: shine 1.5s ease-in-out infinite;
+}
+
 @media (max-width: 768px) {
   .headline {
     line-height: 0.98;

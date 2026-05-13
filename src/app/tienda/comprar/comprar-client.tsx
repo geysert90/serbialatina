@@ -3,9 +3,12 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart, type CartItem } from "@/lib/cart-context";
+import { FreeShippingBar } from "@/components/free-shipping-bar";
+import { getShippingProgress } from "@/lib/shipping";
 
 export function ComprarClient() {
   const { items, totalItems, totalPrice, clearCart, removeItem, updateQuantity } = useCart();
+  const { unlocked: shippingUnlocked } = getShippingProgress(totalPrice);
   const [submitted, setSubmitted] = useState(false);
   const [orderResult, setOrderResult] = useState<{
     orderId: string;
@@ -304,6 +307,13 @@ export function ComprarClient() {
 
           {/* Right column - summary */}
           <aside className="lg:sticky lg:top-24 lg:self-start">
+            {/* Free shipping progress */}
+            {items.length > 0 && (
+              <div className="mb-4">
+                <FreeShippingBar currentTotal={totalPrice} />
+              </div>
+            )}
+
             <div className="rounded-2xl border border-black/8 bg-white p-6 shadow-sm">
               <h2 className="mb-5 text-lg font-semibold tracking-[-0.02em] text-black">
                 Resumen
@@ -316,7 +326,9 @@ export function ComprarClient() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-black/50">Envío</span>
-                  <span className="text-black/30">A coordinar</span>
+                  <span className={shippingUnlocked ? "font-semibold text-emerald-600 tabular-nums" : "text-black/30"}>
+                    {shippingUnlocked ? "¡Gratis!" : "A coordinar"}
+                  </span>
                 </div>
               </div>
 

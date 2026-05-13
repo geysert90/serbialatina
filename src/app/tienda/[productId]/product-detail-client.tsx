@@ -5,9 +5,10 @@ import Link from "next/link";
 
 import { type StoreProduct } from "@/lib/store-db";
 import { useCart } from "@/lib/cart-context";
+import { FreeShippingBar } from "@/components/free-shipping-bar";
 
 export function ProductDetailClient({ product }: { product: StoreProduct }) {
-  const { addItem, openCart } = useCart();
+  const { addItem, openCart, totalPrice } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -156,6 +157,9 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
               <p className="text-sm leading-7 text-black/60">{product.description}</p>
             </div>
           )}
+
+          {/* Free shipping progress */}
+          <FreeShippingBar currentTotal={totalPrice} compact />
 
           {/* Quantity selector */}
           <div className="space-y-2">
