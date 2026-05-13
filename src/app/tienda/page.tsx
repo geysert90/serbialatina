@@ -37,7 +37,7 @@ function TiendaFallback() {
         <div className="h-12 w-72 animate-pulse rounded-2xl bg-black/5" />
         <div className="h-6 w-96 animate-pulse rounded-2xl bg-black/5" />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="min-h-[320px] animate-pulse rounded-[28px] border border-black/8 bg-white/45" />
         ))}
