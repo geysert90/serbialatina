@@ -4,11 +4,14 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useCart, type CartItem } from "@/lib/cart-context";
 import { FreeShippingBar } from "@/components/free-shipping-bar";
-import { getShippingProgress } from "@/lib/shipping";
+import { getShippingProgress, DEFAULT_SHIPPING } from "@/lib/shipping";
 
 export function ComprarClient() {
   const { items, totalItems, totalPrice, clearCart, removeItem, updateQuantity } = useCart();
-  const { unlocked: shippingUnlocked } = getShippingProgress(totalPrice);
+  const shipping = getShippingProgress(totalPrice, DEFAULT_SHIPPING);
+  const shippingUnlocked = shipping.unlocked;
+  const shippingCost = shippingUnlocked ? 0 : DEFAULT_SHIPPING.shippingCost;
+  const orderTotal = totalPrice + shippingCost;
   const [submitted, setSubmitted] = useState(false);
   const [orderResult, setOrderResult] = useState<{
     orderId: string;
@@ -95,7 +98,9 @@ export function ComprarClient() {
         </h2>
         <p className="mt-3 text-lg leading-8 text-black/50">
           Tu pedido <strong className="text-black">{orderResult.orderId}</strong> por{" "}
-          <strong className="text-[var(--color-accent)]">${orderResult.total}</strong> ha sido
+          <strong className="text-[var(--color-accent)]">
+            {orderTotal.toLocaleString()} {DEFAULT_SHIPPING.currency}
+          </strong> ha sido
           registrado exitosamente.
         </p>
         <div className="mt-6 rounded-2xl border border-black/6 bg-white p-5 text-left shadow-sm">
@@ -310,7 +315,7 @@ export function ComprarClient() {
             {/* Free shipping progress */}
             {items.length > 0 && (
               <div className="mb-4">
-                <FreeShippingBar currentTotal={totalPrice} />
+                <FreeShippingBar currentTotal={totalPrice} config={DEFAULT_SHIPPING} />
               </div>
             )}
 
@@ -322,20 +327,25 @@ export function ComprarClient() {
               <div className="space-y-2 border-b border-black/6 pb-4 text-sm">
                 <div className="flex justify-between">
                   <span className="text-black/50">Subtotal</span>
-                  <span className="font-medium tabular-nums">${totalPrice.toFixed(2)}</span>
+                  <span className="font-medium tabular-nums">{totalPrice.toLocaleString()} {DEFAULT_SHIPPING.currency}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-black/50">Envío</span>
-                  <span className={shippingUnlocked ? "font-semibold text-emerald-600 tabular-nums" : "text-black/30"}>
-                    {shippingUnlocked ? "¡Gratis!" : "A coordinar"}
-                  </span>
+                  {shippingUnlocked ? (
+                    <span className="font-semibold text-emerald-600">¡Gratis!</span>
+                  ) : (
+                    <span className="tabular-nums">
+                      {DEFAULT_SHIPPING.shippingCost.toLocaleString()} {DEFAULT_SHIPPING.currency}
+                      <span className="ml-1 text-black/30">({DEFAULT_SHIPPING.shippingLabel})</span>
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-base font-semibold text-black">Total</span>
                 <span className="text-2xl font-bold tracking-[-0.04em] text-[var(--color-accent)]">
-                  ${totalPrice.toFixed(2)}
+                  {orderTotal.toLocaleString()} {DEFAULT_SHIPPING.currency}
                 </span>
               </div>
               <p className="mt-1 text-right text-xs text-black/30">{totalItems} artículo{totalItems !== 1 && "s"}</p>
