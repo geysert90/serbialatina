@@ -1,9 +1,11 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+import * as path from "node:path";
 
 export type UserProfile = {
   userId: string;
   whatsapp?: string;
+  whatsappCountry?: string;
+  whatsappLocalNumber?: string;
   coverPhotoUrl?: string;
   updatedAt: string;
 };
@@ -56,6 +58,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 export async function updateUserProfile(input: {
   userId: string;
   whatsapp?: string;
+  whatsappCountry?: string;
+  whatsappLocalNumber?: string;
   coverPhotoUrl?: string;
 }): Promise<UserProfile> {
   const store = await readStore();
@@ -64,6 +68,8 @@ export async function updateUserProfile(input: {
   const updated: UserProfile = {
     userId: input.userId,
     whatsapp: input.whatsapp?.trim() || undefined,
+    whatsappCountry: input.whatsappCountry?.trim() || existing?.whatsappCountry,
+    whatsappLocalNumber: input.whatsappLocalNumber?.trim() || existing?.whatsappLocalNumber,
     coverPhotoUrl: input.coverPhotoUrl || existing?.coverPhotoUrl,
     updatedAt: new Date().toISOString(),
   };

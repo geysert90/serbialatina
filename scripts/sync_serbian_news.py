@@ -530,13 +530,62 @@ def is_relevant(item: NewsItem) -> tuple[bool, int, list[str]]:
 
 # Content container selectors per source
 CONTENT_SELECTORS: dict[str, str] = {
-    "N1": "div.article-content",
+    "N1": "div.article-content-wrapper",
     "Danas": "div.post-content",
-    "Nova": "article.article-wrapper",
+    "Nova": "div.article-content-wrapper",
     "Kurir": "div.article-content",
     "Blic": "div.article__content",
     "MojNoviSad": "div.single-blog__content",
 }
+
+
+# ── Known non-article sub-sections to skip inside content containers ─────
+# When a <div> with any of these class substrings is encountered inside the
+# article body, the entire subtree is discarded (avoiding related-news widgets,
+# banners, tag blocks, comment CTAs, newsletter embeds, etc.)
+_SKIP_CONTAINER_CLASSES: tuple[str, ...] = (
+    "related-news",         # N1: related-news-block
+    "related-posts",        # generic
+    "related-articles",     # generic
+    "related",              # Blic: article__related, other *related* patterns
+    "slicne-vesti",         # Serbian: "similar news"
+    "povezane-vesti",       # Serbian: "related news"
+    "read-more",            # "read more" widgets
+    "procitaj-jos",         # Serbian: "read more"
+    "tags-article",         # N1: tags-article-block-wrapper
+    "cta-comment",          # N1: cta-comment-wrapper
+    "newsletter",           # newsletter signup
+    "subscribe",            # subscription prompt
+    "banner",               # ad banners
+    "midas",                # Ringier ad platform (Blic, Nova, etc.)
+    "reklama",              # Serbian: "advertisement"
+    "oglas",                # Serbian: "ad"
+    "advert",               # English: "advertisement"
+    "promo",                # promotional content
+    "widget",               # side widgets
+    "sidebar",              # sidebars
+    "sticky-ad",            # sticky ads
+    "article-footer",       # page-turner / related at bottom
+    "content-footer",       # footer within content area
+    "author-box",           # author bio box
+    "recommended",          # recommended articles
+    "preporucujemo",        # Serbian: "we recommend"
+    "najcitanije",          # Serbian: "most read"
+    "najnovije",            # Serbian: "latest"
+    "social-share",         # social share buttons
+    "share-buttons",        # share buttons
+    "article__footer",      # Blic-style footer
+    "article_footer",       # alternate
+    "community",            # Blic: article__community-groups-blic, article__community-button
+    "direct-community",     # Blic: article_direct-community
+    "audio-player",         # Blic: audio player widget
+    "article__author-image",  # Blic: author photo (not article content)
+    "article__author-name",   # Blic: author name line (not article content)
+    "wrapperad",              # Blic: page-level adhesion ad (class="wrapperAd")
+    "overlay",                # page-level overlay (not article content)
+    "contentexchange",        # widget content exchange (nekretnine.rs, etc.)
+    "pulsembed",              # Puls embed/widget (Ringier platform)
+)
 
 
 class ContentExtractor(HTMLParser):
@@ -553,10 +602,12 @@ class ContentExtractor(HTMLParser):
         self.in_target = False
         self.target_depth = 0
         self.current_depth = 0
+        self._skip_depth: int = -1  # depth at which we started skipping; -1 = not skipping
         self.content_parts: list[str] = []
         self.instagram_urls: list[str] = []
         self.youtube_urls: list[str] = []
         self._skip_tags: set[str] = {"script", "style", "noscript", "iframe"}
+        self._in_skip_tag: bool = False  # True when inside a <script>/<style>/etc.
         self._found = False
 
     def handle_starttag(self, tag, attrs):
@@ -582,22 +633,41 @@ class ContentExtractor(HTMLParser):
             if "youtube.com" in dsrc:
                 self.youtube_urls.append(dsrc)
 
-        # Check if entering target container
-        if not self._found and tag_lower == self.target_tag and self.target_class in classes:
-            self.in_target = True
-            self.target_depth = self.current_depth
-            self._found = True
+        # ── Skip-logic: if already inside a skipped sub-tree, keep counting depth ──
+        if self._skip_depth >= 0:
+            self.current_depth += 1
             return
+
+        # ── Check if this tag opens a sub-section we should skip entirely ──
+        if self.in_target and tag_lower in ("div", "section", "aside", "article"):
+            class_str = " ".join(classes).lower()
+            id_str = (attrs_dict.get("id", "") or "").lower()
+            combined = f"{class_str} {id_str}"
+            for skip_cls in _SKIP_CONTAINER_CLASSES:
+                if skip_cls in combined:
+                    self._skip_depth = self.current_depth
+                    self.current_depth += 1
+                    return
+
+        # Check if entering target container (substring match on classes)
+        if not self._found and tag_lower == self.target_tag:
+            class_str = " ".join(classes)
+            if self.target_class in class_str:
+                self.in_target = True
+                self.target_depth = self.current_depth
+                self._found = True
+                return
 
         if self.in_target:
             self.current_depth += 1
             if tag_lower in self._skip_tags:
+                self._in_skip_tag = True
                 return
             attrs_str = ""
             for k, v in attrs:
                 v_escaped = html_mod.escape(v or "", quote=True)
                 attrs_str += f' {k}="{v_escaped}"'
-            if tag_lower in {"br", "img", "hr", "source"}:
+            if tag_lower in {"br", "img", "hr", "source", "use", "input", "link", "meta", "area", "base", "col", "embed", "track", "wbr"}:
                 self.content_parts.append(f"<{tag_lower}{attrs_str} />")
             else:
                 self.content_parts.append(f"<{tag_lower}{attrs_str}>")
@@ -606,15 +676,29 @@ class ContentExtractor(HTMLParser):
 
     def handle_endtag(self, tag):
         tag_lower = tag.lower()
+
+        # ── Skip-logic: if inside a skipped sub-tree ──
+        if self._skip_depth >= 0:
+            self.current_depth -= 1
+            if self.current_depth == self._skip_depth:
+                self._skip_depth = -1  # exited the skipped sub-tree
+            return
+
         if self.in_target:
             if self.current_depth == self.target_depth:
                 self.in_target = False
                 return
-            if tag_lower not in self._skip_tags and tag_lower not in {"br", "img", "hr", "source"}:
+            if tag_lower in self._skip_tags:
+                self._in_skip_tag = False
+            if tag_lower not in self._skip_tags and tag_lower not in {"br", "img", "hr", "source", "use", "input", "link", "meta", "area", "base", "col", "embed", "track", "wbr"}:
                 self.content_parts.append(f"</{tag_lower}>")
         self.current_depth -= 1
 
     def handle_data(self, data):
+        if self._skip_depth >= 0:
+            return
+        if self._in_skip_tag:
+            return
         if self.in_target:
             self.content_parts.append(data)
 
@@ -650,6 +734,156 @@ def fetch_article_body(source_name: str, url: str) -> tuple[str, list[str], list
 
     body = extractor.get_content()
     return body, extractor.instagram_urls, extractor.youtube_urls
+
+
+
+def _is_ad_image(img_tag: str) -> bool:
+    """Return True if an <img> tag looks like an advertisement.
+    
+    Checks: class name, src domain, and known ad dimensions.
+    """
+    tag_lower = img_tag.lower()
+    
+    # ── 1. Check class for ad-related keywords ──
+    class_match = re.search(r'class\s*=\s*"([^"]*)"', tag_lower)
+    if class_match:
+        classes = class_match.group(1).lower()
+        ad_class_keywords = (
+            "banner", "reklama", "oglas", "advert", "midas",
+            "promo", "sponsored", "ad-", "-ad", "_ad", "ad_",
+        )
+        for kw in ad_class_keywords:
+            if kw in classes:
+                return True
+    
+    # ── 2. Check src for ad-serving domains ──
+    src_match = re.search(r'src\s*=\s*"([^"]*)"', tag_lower)
+    src = src_match.group(1) if src_match else ""
+    data_src_match = re.search(r'data-src\s*=\s*"([^"]*)"', tag_lower)
+    data_src = data_src_match.group(1) if data_src_match else ""
+    combined_src = (src + " " + data_src).lower()
+    
+    ad_domains = (
+        "doubleclick", "googlesyndication", "adnxs", "pubmatic",
+        "openx", "rubiconproject", "criteo", "outbrain", "taboola",
+        "addthis", "sharethis", "pixel.quantserve", "facebook.com/tr",
+        "mc.yandex", "midas-network", "ringieraxelspringer",
+    )
+    for domain in ad_domains:
+        if domain in combined_src:
+            return True
+    
+    # ── 3. Check path in src for ad/banner indicators ──
+    ad_path_keywords = ("/banner/", "/ads/", "/ad/", "/reklama/", "/oglas/",
+                        "/promo/", "/widget/", "/sponsored/")
+    for kw in ad_path_keywords:
+        if kw in combined_src:
+            return True
+    
+    # ── 4. Check dimensions for common ad banner sizes ──
+    width_match = re.search(r'width\s*=\s*"(\d+)"', tag_lower)
+    height_match = re.search(r'height\s*=\s*"(\d+)"', tag_lower)
+    if width_match and height_match:
+        w, h = int(width_match.group(1)), int(height_match.group(1))
+        # Common ad banner sizes
+        if (w, h) in (
+            (728, 90), (970, 90), (970, 250),  # leaderboard
+            (300, 250), (300, 600), (160, 600),  # medium rectangle / skyscraper
+            (320, 50), (320, 100),  # mobile banner
+            (468, 60),  # banner
+            (336, 280),  # large rectangle
+        ):
+            return True
+    
+    # ── 5. Src is a known 1x1 tracking pixel ──
+    if width_match and height_match:
+        w, h = int(width_match.group(1)), int(height_match.group(1))
+        if w <= 2 and h <= 2:
+            return True
+    # Also check style-based dimensions
+    style_match = re.search(r'style\s*=\s*"([^"]*)"', tag_lower)
+    if style_match:
+        style = style_match.group(1).lower()
+        if re.search(r'width\s*:\s*[01]px', style) or re.search(r'height\s*:\s*[01]px', style):
+            return True
+    
+    return False
+
+
+def _strip_html_for_translation(html_body: str) -> tuple[str, list[str], list[str]]:
+    """Extract <img> and <a> tags, strip HTML, return clean text for translation.
+    
+    Returns (clean_text, img_tags, link_tags).
+    The img_tags and link_tags are preserved as-is so they can be re-inserted
+    after translation without being mangled by Google Translate.
+    
+    Advertising images are filtered out by class, src domain, and dimensions.
+    """
+    # Extract all <img> tags
+    raw_img_tags: list[str] = re.findall(r'<img\b[^>]*/?>', html_body, re.I)
+    # Filter out advertising images
+    img_tags: list[str] = [t for t in raw_img_tags if not _is_ad_image(t)]
+    # Extract <a> tags (preserve links)
+    link_tags: list[str] = re.findall(r'<a\b[^>]*>.*?</a>', html_body, re.I | re.DOTALL)
+    
+    # Replace img and a tags with placeholders before stripping
+    for i, tag in enumerate(img_tags):
+        html_body = html_body.replace(tag, f" IMGPLACEHOLDER{i} ", 1)
+    for i, tag in enumerate(link_tags):
+        html_body = html_body.replace(tag, f" LINKPLACEHOLDER{i} ", 1)
+    
+    # Strip remaining HTML tags
+    clean = re.sub(r'<[^>]+>', ' ', html_body)
+    clean = re.sub(r'\s+', ' ', clean).strip()
+    
+    return clean, img_tags, link_tags
+
+
+def _reinsert_media_after_translation(
+    translated_text: str, img_tags: list[str], link_tags: list[str]
+) -> str:
+    """Re-insert preserved <img> and <a> tags into translated text.
+    
+    Placeholders that survived translation are replaced. Any that were dropped
+    by the translator are re-inserted at natural break points.
+    """
+    # Try placeholder replacement first
+    result = translated_text
+    for i, tag in enumerate(img_tags):
+        placeholder = f"IMGPLACEHOLDER{i}"
+        if placeholder in result:
+            result = result.replace(placeholder, tag)
+    
+    for i, tag in enumerate(link_tags):
+        placeholder = f"LINKPLACEHOLDER{i}"
+        if placeholder in result:
+            result = result.replace(placeholder, tag)
+    
+    # Insert any remaining images that the translator dropped,
+    # alternating with paragraph breaks
+    leftover = [t for i, t in enumerate(img_tags) if f"IMGPLACEHOLDER{i}" not in translated_text]
+    leftover_links = [t for i, t in enumerate(link_tags) if f"LINKPLACEHOLDER{i}" not in translated_text]
+    
+    # If translator dropped images, insert them every 2 paragraphs
+    if leftover:
+        paragraphs = [p.strip() for p in result.split('\n') if p.strip()]
+        rebuilt_parts: list[str] = []
+        img_idx = 0
+        for pi, p in enumerate(paragraphs):
+            rebuilt_parts.append(p)
+            if img_idx < len(leftover) and pi > 0 and (pi + 1) % 2 == 0:
+                rebuilt_parts.append(leftover[img_idx])
+                img_idx += 1
+        while img_idx < len(leftover):
+            rebuilt_parts.append(leftover[img_idx])
+            img_idx += 1
+        result = '\n'.join(rebuilt_parts)
+    
+    # Append leftover links at the end
+    if leftover_links:
+        result = result.rstrip() + '\n\n' + '\n'.join(leftover_links)
+    
+    return result
 
 
 def build_full_post_html(item: "TranslatedItem", full_body_es: str = "") -> str:
@@ -1169,8 +1403,28 @@ def main() -> int:
                 item.instagram_urls = ig_urls
                 item.youtube_urls = yt_urls
                 if body_html:
-                    # Translate body (limit to ~3000 chars to stay within limits)
-                    item.full_body_es = translate_text_to_spanish(body_html, max_chars=3500)
+                    # Strip HTML tags before translation, preserve <img> and <a>
+                    clean_text, img_tags, link_tags = _strip_html_for_translation(body_html)
+                    if clean_text:
+                        translated_clean = translate_text_to_spanish(clean_text, max_chars=3500)
+                        # Re-insert images and links, wrap in paragraphs
+                        rebuilt = _reinsert_media_after_translation(
+                            translated_clean, img_tags, link_tags
+                        )
+                        # Wrap non-tag lines in <p> for proper WordPress rendering
+                        lines = rebuilt.split('\n')
+                        wrapped: list[str] = []
+                        for line in lines:
+                            stripped = line.strip()
+                            if not stripped:
+                                continue
+                            if re.match(r'^<[a-z]+\b', stripped):
+                                wrapped.append(stripped)
+                            else:
+                                wrapped.append(f'<p>{stripped}</p>')
+                        item.full_body_es = '\n'.join(wrapped)
+                    else:
+                        item.full_body_es = ''
                     body_len = len(body_html)
                 else:
                     body_len = 0

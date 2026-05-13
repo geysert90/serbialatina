@@ -4,7 +4,6 @@ import { Suspense, type ReactNode } from "react";
 
 import { logoutAction } from "@/app/acceso/actions";
 import { AuthModalButton } from "@/components/auth/auth-modal";
-import { getUserProfile } from "@/lib/auth/profile-store";
 import { getSessionUser, type SessionUser } from "@/lib/auth/session";
 import { MobileMenu } from "@/components/mobile-menu";
 import type { NavigationItem, SiteChromeData } from "@/lib/wordpress";
@@ -239,9 +238,8 @@ function UserAccessButton({
 
 async function UserAccessSlot() {
   const currentUser = await getSessionUser();
-  const profile = currentUser ? await getUserProfile(currentUser.id) : null;
 
-  return <UserAccessButton avatarUrl={profile?.coverPhotoUrl} currentUser={currentUser} />;
+  return <UserAccessButton avatarUrl={currentUser ? `/api/profile-photo/${currentUser.id}` : undefined} currentUser={currentUser} />;
 }
 
 export function SiteShell({
@@ -304,24 +302,26 @@ export function SiteShell({
       </div>
 
       <header className="sticky top-0 z-50 border-b border-black/6 bg-[rgba(245,239,226,0.82)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-8">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-[0_12px_30px_-18px_rgba(0,0,0,0.8)]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 md:gap-4 md:px-8 md:py-4">
+          <Link href="/" className="flex shrink-0 items-center gap-1.5 md:gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-[0_12px_30px_-18px_rgba(0,0,0,0.8)] md:h-12 md:w-12">
               <Image
                 src="/logo.png"
                 alt=""
-                width={44}
-                height={44}
+                width={48}
+                height={48}
                 priority
-                className="h-auto w-auto max-h-10 max-w-10 object-contain"
+                className="h-auto w-auto max-h-8 max-w-8 object-contain md:max-h-11 md:max-w-11"
               />
             </span>
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.24em]">
+            <div className="min-w-0">
+              <p className="whitespace-nowrap text-[0.8rem] font-semibold uppercase tracking-[0.03em] md:text-sm md:tracking-[0.24em]">
                 <span className="text-blue-700">Serbia</span>{" "}
                 <span className="text-red-600">Latina</span>
               </p>
-              <p className="text-sm text-black/65">Comunidad hispana en los Balcanes</p>
+              <p className="whitespace-nowrap text-[0.58rem] leading-tight text-black/65 md:text-sm">
+                Comunidad hispana en los Balcanes
+              </p>
             </div>
           </Link>
 
@@ -355,16 +355,13 @@ export function SiteShell({
             )}
             <Link
               href="/serbio"
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-black/45 transition hover:bg-black/5 hover:text-black"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-black/65 transition hover:bg-amber-50 hover:text-amber-800"
             >
-              Aprender Serbio
-              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wider text-amber-700">
-                DEV
-              </span>
+              Aprender Serbio 🇷🇸
             </Link>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 md:gap-3">
             <CartButton />
 
             <Suspense fallback={<UserAccessButton currentUser={null} />}>
@@ -378,54 +375,33 @@ export function SiteShell({
 
       <main>{children}</main>
 
-      <footer className="mx-auto mt-12 max-w-7xl px-4 pb-10 md:px-8">
-        <div className="panel grid gap-8 p-6 md:grid-cols-[1.1fr_.9fr] md:p-8">
-          <div className="space-y-4">
-            <p className="eyebrow w-fit">Arquitectura híbrida</p>
-            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-black">
-              Contenido servido desde WordPress, experiencia afinada en Next.js.
-            </h2>
-            <p className="max-w-2xl text-sm leading-7 text-black/65">
-              La navegación y el contenido público salen del backend de{" "}
-              <span className="font-semibold">{chrome.site.name}</span>. Los menús
-              protegidos usan credenciales si existen; si no, el frontend cae a una
-              navegación automática basada en categorías y páginas.
-            </p>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="space-y-3">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black/45">
-                Categorías
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {chrome.categories.slice(0, 6).map((category) => (
-                  <Link
-                    key={category.id}
-                    href={`/categorias/${category.slug}`}
-                    className="rounded-full border border-black/8 bg-white/70 px-3 py-2 text-sm text-black/70 transition hover:-translate-y-0.5 hover:bg-white"
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-              </div>
+      <footer className="mx-auto mt-10 max-w-7xl px-4 pb-8 md:px-8">
+        <div className="border-t border-black/8 pt-5">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1 text-sm text-black/55">
+              <p className="font-semibold text-black/75">{chrome.site.name}</p>
+              <p>Aprende serbio, revista y progreso para hispanohablantes en Serbia.</p>
             </div>
 
-            <div className="space-y-3">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-black/45">
-                Páginas
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {chrome.pages.slice(0, 6).map((page) => (
-                  <Link
-                    key={page.id}
-                    href={`/paginas/${page.slug}`}
-                    className="rounded-full border border-black/8 bg-white/70 px-3 py-2 text-sm text-black/70 transition hover:-translate-y-0.5 hover:bg-white"
-                  >
-                    {page.title.rendered.replace(/<[^>]*>/g, "").trim()}
-                  </Link>
-                ))}
-              </div>
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <Link
+                href="/serbio"
+                className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
+              >
+                Serbio
+              </Link>
+              <Link
+                href="/serbio/revista"
+                className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
+              >
+                Revista
+              </Link>
+              <Link
+                href="/serbio/progreso"
+                className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
+              >
+                Progreso
+              </Link>
             </div>
           </div>
         </div>

@@ -166,9 +166,6 @@ export function MobileMenu({ items }: { items: MobileMenuItem[] }) {
         type="button"
         ref={buttonRef}
         onClick={openMenu}
-        onTouchEnd={() => {
-          openMenu();
-        }}
         className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white/76 text-black shadow-[0_12px_30px_-22px_rgba(0,0,0,0.7)] transition hover:-translate-y-0.5 hover:bg-white lg:hidden"
         aria-label="Abrir menú"
       >

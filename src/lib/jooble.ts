@@ -150,10 +150,8 @@ function readGoogleTranslateResponse(data: unknown): string {
     .trim();
 }
 
-async function translateSnippetToSpanish(value: string): Promise<string> {
-  const cleaned = stripJobHtml(value);
-
-  if (!cleaned) {
+async function translateViaGoogle(value: string): Promise<string> {
+  if (!value) {
     return "";
   }
 
@@ -163,7 +161,7 @@ async function translateSnippetToSpanish(value: string): Promise<string> {
     url.searchParams.set("sl", "auto");
     url.searchParams.set("tl", "es");
     url.searchParams.set("dt", "t");
-    url.searchParams.set("q", cleaned.slice(0, 900));
+    url.searchParams.set("q", value.slice(0, 900));
 
     const response = await fetch(url, {
       headers: {
@@ -172,14 +170,35 @@ async function translateSnippetToSpanish(value: string): Promise<string> {
     });
 
     if (!response.ok) {
-      return cleaned;
+      return value;
     }
 
     const translated = readGoogleTranslateResponse(await response.json());
-    return translated || cleaned;
+    return translated || value;
   } catch {
+    return value;
+  }
+}
+
+async function translateSnippetToSpanish(value: string): Promise<string> {
+  const cleaned = stripJobHtml(value);
+  return translateViaGoogle(cleaned);
+}
+
+async function translateTitleToSpanish(value: string): Promise<string> {
+  const cleaned = cleanText(value);
+  if (!cleaned) {
+    return "";
+  }
+
+  // Only translate if the title contains non-Spanish characters or patterns
+  // (avoids double-translating already-Spanish titles)
+  const spanishPattern = /[áéíóúñü¿¡]/i;
+  if (spanishPattern.test(cleaned)) {
     return cleaned;
   }
+
+  return translateViaGoogle(cleaned);
 }
 
 function isValidUrl(value: string): boolean {
@@ -312,9 +331,9 @@ async function normalizeInfostudJob(item: InfostudRssItem, index: number): Promi
 
   return {
     id: item.guid || `infostud-${item.link}-${index}`,
-    title: item.title,
+    title: await translateTitleToSpanish(item.title),
     location: companyLocation.location,
-    snippet: item.description,
+    snippet: await translateSnippetToSpanish(item.description),
     source: "Infostud RSS",
     link: item.link.replace(/^http:/, "https:"),
     company: companyLocation.company,
@@ -370,7 +389,7 @@ async function normalizeJob(job: JoobleApiJob, index: number): Promise<JoobleJob
 
   return {
     id: job.id ?? `${title}-${index}`,
-    title,
+    title: await translateTitleToSpanish(title),
     location: cleanText(job.location, "Ubicación no especificada"),
     snippet: await translateSnippetToSpanish(cleanText(job.snippet)),
     salary: cleanText(job.salary),

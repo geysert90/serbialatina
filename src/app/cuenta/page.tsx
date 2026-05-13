@@ -8,6 +8,8 @@ import { logoutAction } from "@/app/acceso/actions";
 import { changePasswordAction, updateProfileAction } from "@/app/perfil/actions";
 import { getUserProfile } from "@/lib/auth/profile-store";
 import { getSessionUser } from "@/lib/auth/session";
+import { deriveWhatsappDefaults } from "@/lib/auth/whatsapp-defaults";
+import { WhatsappPhoneField } from "@/components/profile/whatsapp-phone-field";
 import { formatDate, stripHtml } from "@/lib/utils";
 import {
   getCommentExcerpt,
@@ -135,7 +137,11 @@ async function AccountContent({ searchParams }: AccountPageProps) {
   }
 
   const profile = await getUserProfile(currentUser.id);
-  const avatarUrl = profile?.coverPhotoUrl;
+  const avatarVersion = profile?.coverPhotoUrl || profile?.updatedAt;
+  const avatarUrl = avatarVersion
+    ? `/api/profile-photo/${currentUser.id}?v=${encodeURIComponent(avatarVersion)}`
+    : undefined;
+  const whatsappDefaults = deriveWhatsappDefaults(profile?.whatsapp);
   const authorId = Number(currentUser.id);
   const userComments = Number.isFinite(authorId) ? await getCommentsByAuthor(authorId) : [];
   const repliesToUser = await getRepliesToComments(userComments.map((comment) => comment.id));
@@ -171,6 +177,7 @@ async function AccountContent({ searchParams }: AccountPageProps) {
                     alt={`Foto de perfil de ${currentUser.name}`}
                     fill
                     priority
+                    unoptimized
                     className="object-cover object-center"
                     sizes="96px"
                   />
@@ -227,23 +234,10 @@ async function AccountContent({ searchParams }: AccountPageProps) {
             <p className="text-xs leading-5 text-black/45">JPG, PNG o WebP. Máximo 2 MB.</p>
           </div>
 
-          <div className="space-y-2">
-            <label
-              htmlFor="whatsapp"
-              className="text-xs font-semibold uppercase tracking-[0.2em] text-black/48"
-            >
-              Teléfono de WhatsApp
-            </label>
-            <input
-              id="whatsapp"
-              name="whatsapp"
-              type="tel"
-              autoComplete="tel"
-              defaultValue={profile?.whatsapp ?? ""}
-              placeholder="+381 60 123 4567"
-              className="w-full rounded-[22px] border border-black/10 bg-white/78 px-4 py-3 text-base text-black outline-none transition focus:border-[rgba(209,91,31,0.45)] focus:ring-4 focus:ring-[rgba(209,91,31,0.12)]"
-            />
-          </div>
+          <WhatsappPhoneField
+            defaultCountryCode={whatsappDefaults.countryCode}
+            defaultLocalNumber={whatsappDefaults.localNumber}
+          />
 
           <button
             type="submit"

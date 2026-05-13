@@ -2,6 +2,20 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  async redirects() {
+    return [
+      {
+        source: "/noticias",
+        destination: "/categorias/noticias",
+        permanent: false,
+      },
+      {
+        source: "/revista",
+        destination: "/serbio/revista",
+        permanent: false,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

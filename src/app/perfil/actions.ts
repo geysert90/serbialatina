@@ -1,7 +1,7 @@
 "use server";
 
 import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
+import * as path from "node:path";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -10,6 +10,7 @@ import { sendPasswordChangedEmail } from "@/lib/auth/profile-email";
 import { updateUserProfile } from "@/lib/auth/profile-store";
 import { getSessionUser } from "@/lib/auth/session";
 import { authenticateUser, updateWordPressUserPassword } from "@/lib/auth/user-store";
+import { composeWhatsappNumber } from "@/lib/auth/whatsapp-countries";
 
 const PASSWORD_MIN_LENGTH = 8;
 const MAX_COVER_PHOTO_SIZE = 2 * 1024 * 1024;
@@ -68,7 +69,13 @@ export async function updateProfileAction(formData: FormData): Promise<void> {
     redirect("/acceso");
   }
 
-  const whatsapp = normalizeWhatsapp(readTrimmedText(formData, "whatsapp"));
+  const whatsappCountry = readTrimmedText(formData, "whatsappCountry");
+  const whatsappLocalNumber = readTrimmedText(formData, "whatsappLocalNumber");
+  const whatsapp = composeWhatsappNumber({
+    countryCode: whatsappCountry,
+    localNumber: whatsappLocalNumber,
+    legacyPhone: readTrimmedText(formData, "whatsapp"),
+  });
   const coverPhoto = formData.get("coverPhoto");
   let coverPhotoUrl: string | undefined;
 
@@ -80,6 +87,8 @@ export async function updateProfileAction(formData: FormData): Promise<void> {
     await updateUserProfile({
       userId: currentUser.id,
       whatsapp,
+      whatsappCountry,
+      whatsappLocalNumber,
       coverPhotoUrl,
     });
   } catch (error) {
