@@ -165,7 +165,7 @@ function ProductCard({ product }: { product: StoreProduct }) {
 
         {/* Price */}
         <span className="text-base font-bold tracking-[-0.03em] text-[var(--color-accent)] sm:text-lg">
-          ${product.price.toFixed(2)}
+          {product.price.toFixed(2)} RSD
         </span>
 
         {/* Description */}

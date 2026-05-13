@@ -272,7 +272,7 @@ export function ComprarClient() {
                             <Link href={`/tienda/${item.productId}`} className="text-sm font-medium text-black hover:text-[var(--color-accent)] line-clamp-1">
                               {item.name}
                             </Link>
-                            <p className="text-xs text-black/35">×{item.quantity} · ${item.price.toFixed(2)} c/u</p>
+                            <p className="text-xs text-black/35">×{item.quantity} · {item.price.toFixed(2)} RSD c/u</p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             <button
@@ -290,7 +290,7 @@ export function ComprarClient() {
                             >
                               +
                             </button>
-                            <span className="w-16 text-right text-sm font-semibold tabular-nums">${(item.price * item.quantity).toFixed(2)}</span>
+                            <span className="w-16 text-right text-sm font-semibold tabular-nums">{(item.price * item.quantity).toFixed(2)} RSD</span>
                             <button
                               type="button"
                               onClick={() => removeItem(item.productId)}

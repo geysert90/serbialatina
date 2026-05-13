@@ -125,7 +125,7 @@ export function ProductDetailClient({ product }: { product: StoreProduct }) {
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-bold tracking-[-0.04em] text-[var(--color-accent)] md:text-5xl">
-              ${product.price.toFixed(2)}
+              {product.price.toFixed(2)} RSD
             </span>
             {product.price > 0 && (
               <span className="text-sm text-black/35">+ envío</span>

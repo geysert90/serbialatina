@@ -180,7 +180,7 @@ export function CartDrawer() {
 
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-black">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            {(item.price * item.quantity).toFixed(2)} RSD
                           </span>
                           <button
                             type="button"
@@ -208,7 +208,7 @@ export function CartDrawer() {
             <div className="mb-4 flex items-center justify-between">
               <span className="text-sm font-medium text-black/55">Total</span>
               <span className="text-2xl font-bold tracking-[-0.04em] text-black">
-                ${totalPrice.toFixed(2)}
+                {totalPrice.toFixed(2)} RSD
               </span>
             </div>
 
