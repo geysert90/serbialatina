@@ -11,6 +11,7 @@ export function TiendaClient({ initialProducts }: { initialProducts: StoreProduc
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 md:px-8 md:py-12">
+      {/* Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
           <div className="eyebrow w-fit">Serbia Latina</div>
@@ -38,6 +39,7 @@ export function TiendaClient({ initialProducts }: { initialProducts: StoreProduc
         )}
       </div>
 
+      {/* Product grid */}
       {products.length === 0 ? (
         <div className="reserved-slot min-h-[280px]">
           <div className="eyebrow w-fit bg-white/55">Sin productos</div>
@@ -46,13 +48,14 @@ export function TiendaClient({ initialProducts }: { initialProducts: StoreProduc
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 lg:gap-5">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       )}
 
+      {/* Sell with us banner */}
       <div className="rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-6 shadow-sm md:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
@@ -79,20 +82,22 @@ export function TiendaClient({ initialProducts }: { initialProducts: StoreProduc
   );
 }
 
+/* ───── Product Card ───── */
+
 function ProductCard({ product }: { product: StoreProduct }) {
   const { addItem, openCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
 
+  const outOfStock = product.quantity === 0;
+  const lowStock = product.quantity > 0 && product.quantity <= 5;
+
   const stockLabel =
     product.quantity === 0
       ? "Agotado"
       : product.quantity <= 5
-        ? `¡Solo ${product.quantity} quedan!`
-        : `${product.quantity} disponibles`;
-
-  const stockUrgent = product.quantity > 0 && product.quantity <= 5;
-  const outOfStock = product.quantity === 0;
+        ? `Solo ${product.quantity}`
+        : `${product.quantity} disp.`;
 
   const handleAddToCart = useCallback(() => {
     if (outOfStock) return;
@@ -113,128 +118,131 @@ function ProductCard({ product }: { product: StoreProduct }) {
   }, [product, quantity, addItem, openCart, outOfStock]);
 
   return (
-    <article className="story-card group flex flex-col overflow-hidden sm:flex-row">
-      <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-gradient-to-br from-black/[0.02] to-black/[0.06] sm:w-56">
+    <article className="group flex flex-col overflow-hidden rounded-2xl border border-black/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-black/12 hover:shadow-lg hover:shadow-black/5">
+      {/* Image */}
+      <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-black/[0.01] to-black/[0.04]">
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <svg
-              className="h-16 w-16 text-black/10"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-              />
+          <div className="flex h-full w-full items-center justify-center text-black/10">
+            <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
           </div>
         )}
 
-        <div className="absolute left-3 top-3 rounded-full border border-white/30 bg-white/80 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-black/50 backdrop-blur-sm">
+        {/* Store badge */}
+        <span className="absolute left-2 top-2 rounded-full border border-white/50 bg-white/80 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-black/50 backdrop-blur-sm">
           {product.storeName}
-        </div>
+        </span>
+
+        {/* Out of stock overlay */}
+        {outOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold uppercase tracking-[0.1em] text-black/60">
+              Agotado
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-5">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <h2 className="text-lg font-semibold leading-snug tracking-[-0.03em] text-black">
-              <a
-                href={product.storeUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="underline-offset-4 hover:underline"
-              >
-                {product.name}
-              </a>
-            </h2>
-          </div>
-          <span className="shrink-0 text-xl font-bold tracking-[-0.03em] text-black">
-            ${product.price.toFixed(2)}
-          </span>
-        </div>
+      {/* Info */}
+      <div className="flex flex-1 flex-col gap-2 p-3 sm:p-3.5">
+        {/* Name */}
+        <h3 className="line-clamp-2 text-[0.8rem] font-semibold leading-snug tracking-[-0.015em] text-black sm:text-sm">
+          <a
+            href={product.storeUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-[var(--color-accent)]"
+          >
+            {product.name}
+          </a>
+        </h3>
 
+        {/* Price */}
+        <span className="text-base font-bold tracking-[-0.03em] text-[var(--color-accent)] sm:text-lg">
+          ${product.price.toFixed(2)}
+        </span>
+
+        {/* Description */}
         {product.description && (
-          <p className="line-clamp-2 text-sm leading-6 text-black/55">
+          <p className="line-clamp-2 hidden text-[0.7rem] leading-relaxed text-black/40 sm:block">
             {product.description}
           </p>
         )}
 
-        <div className="mt-auto space-y-3">
+        {/* Stock badge */}
+        <div className="flex items-center gap-1.5">
           <span
-            className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-              outOfStock
-                ? "bg-red-50 text-red-600"
-                : stockUrgent
-                  ? "bg-amber-50 text-amber-700"
-                  : "bg-emerald-50 text-emerald-700"
+            className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+              outOfStock ? "bg-red-400" : lowStock ? "bg-amber-400" : "bg-emerald-400"
+            }`}
+          />
+          <span
+            className={`text-[0.6rem] font-medium ${
+              outOfStock ? "text-red-500" : lowStock ? "text-amber-600" : "text-emerald-600"
             }`}
           >
             {stockLabel}
           </span>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 rounded-full border border-black/10 bg-white p-0.5">
-              <button
-                type="button"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                disabled={outOfStock}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-black/50 transition hover:bg-black/5 hover:text-black disabled:opacity-30"
-              >
-                −
-              </button>
-              <span className="w-9 text-center text-sm font-semibold tabular-nums text-black">
-                {quantity}
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setQuantity((q) => Math.min(product.quantity, q + 1))
-                }
-                disabled={outOfStock || quantity >= product.quantity}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-sm text-black/50 transition hover:bg-black/5 hover:text-black disabled:opacity-30"
-              >
-                +
-              </button>
-            </div>
-
+        {/* Controls */}
+        <div className="mt-auto flex flex-col gap-2 pt-1">
+          {/* Quantity */}
+          <div className="flex items-center justify-between rounded-lg border border-black/6 bg-black/[0.02] px-1.5 py-1">
             <button
               type="button"
-              onClick={handleAddToCart}
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               disabled={outOfStock}
-              className={`inline-flex flex-1 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white transition ${
-                added
-                  ? "bg-emerald-600"
-                  : "bg-[var(--color-accent)] hover:-translate-y-0.5 hover:bg-black"
-              } disabled:opacity-40 disabled:hover:translate-y-0`}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-black/40 transition hover:bg-black/5 hover:text-black disabled:opacity-25"
             >
-              {added ? (
-                <>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Agregado
-                </>
-              ) : (
-                <>
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Agregar al carrito
-                </>
-              )}
+              −
+            </button>
+            <span className="text-xs font-semibold tabular-nums text-black">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.min(product.quantity, q + 1))}
+              disabled={outOfStock || quantity >= product.quantity}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-xs text-black/40 transition hover:bg-black/5 hover:text-black disabled:opacity-25"
+            >
+              +
             </button>
           </div>
+
+          {/* Add to cart */}
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={outOfStock}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white transition-all duration-200 ${
+              added
+                ? "scale-[0.97] bg-emerald-500"
+                : "bg-[var(--color-accent)] hover:bg-black active:scale-[0.97]"
+            } disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--color-accent)]`}
+          >
+            {added ? (
+              <>
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Agregado
+              </>
+            ) : (
+              <>
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                </svg>
+                Agregar
+              </>
+            )}
+          </button>
         </div>
       </div>
     </article>
