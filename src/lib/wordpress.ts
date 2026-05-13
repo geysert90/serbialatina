@@ -309,15 +309,18 @@ function buildFallbackNavigation(
   const sectionItems = HOME_SECTION_BLUEPRINT.map((section) => {
     const category = categoryMap.get(section.slug);
     const isJobsSection = section.slug === "trabajos";
+    const isStoreSection = section.slug === "tienda";
 
     return {
       label: section.label,
       href: isJobsSection
         ? "/trabajos"
-        : category
-          ? `/categorias/${category.slug}`
-          : `/#${section.slug}`,
-      kind: isJobsSection ? "anchor" : category ? "category" : "anchor",
+        : isStoreSection
+          ? "/tienda"
+          : category
+            ? `/categorias/${category.slug}`
+            : `/#${section.slug}`,
+      kind: isJobsSection || isStoreSection ? "anchor" : category ? "category" : "anchor",
     } as NavigationItem;
   });
 
