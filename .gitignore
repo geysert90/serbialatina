@@ -48,3 +48,5 @@ __pycache__/
 
 # uploaded user content
 public/uploads/
+scripts/.directus_token
+.env.local
