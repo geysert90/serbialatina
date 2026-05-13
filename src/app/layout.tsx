@@ -8,6 +8,8 @@ import { PushNotificationsPrompt } from "@/components/push-notifications-prompt"
 import { getSiteChromeData, getSiteIdentity } from "@/lib/wordpress";
 import { getBaseSiteUrl } from "@/lib/utils";
 
+import { CartClientWrapper } from "@/components/cart-client-wrapper";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -76,7 +78,9 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <SiteShell chrome={chrome}>{children}</SiteShell>
+        <CartClientWrapper>
+          <SiteShell chrome={chrome}>{children}</SiteShell>
+        </CartClientWrapper>
         <PwaInstallPrompt />
         <PushNotificationsPrompt />
       </body>

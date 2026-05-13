@@ -6,6 +6,7 @@ import { logoutAction } from "@/app/acceso/actions";
 import { AuthModalButton } from "@/components/auth/auth-modal";
 import { getSessionUser, type SessionUser } from "@/lib/auth/session";
 import { MobileMenu } from "@/components/mobile-menu";
+import { CartButton } from "@/components/cart-button";
 import type { NavigationItem, SiteChromeData } from "@/lib/wordpress";
 
 function NavItem({
@@ -124,7 +125,7 @@ function CommunityNavItem({ chrome }: { chrome: SiteChromeData }) {
   );
 }
 
-function CartButton() {
+function CartButtonPlaceholder() {
   return (
     <Link
       href="/paginas/carrito"
