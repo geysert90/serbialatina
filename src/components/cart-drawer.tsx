@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart-context";
 
 export function CartDrawer() {
+  const router = useRouter();
   const {
     items,
     isOpen,
@@ -205,10 +207,8 @@ export function CartDrawer() {
             <button
               type="button"
               onClick={() => {
-                // Open each product's store URL in a new tab
-                items.forEach((item) => {
-                  window.open(item.storeUrl, "_blank");
-                });
+                closeCart();
+                router.push("/tienda/comprar");
               }}
               className="w-full rounded-full bg-[var(--color-accent)] px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-black hover:shadow-xl"
             >

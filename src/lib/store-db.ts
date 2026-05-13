@@ -53,24 +53,46 @@ export async function getStoreProducts(): Promise<StoreProduct[]> {
     );
 
     if (!raw) return [];
-
-    return raw.split("\n").map((line) => {
-      const cols = line.split("\t");
-      return {
-        id: Number(cols[0]),
-        name: cols[1] ?? "",
-        price: Number(cols[2]) || 0,
-        quantity: Number(cols[3]) || 0,
-        storeId: Number(cols[4]),
-        storeName: cols[8] ?? "Tienda",
-        storeSlug: cols[9] ?? "",
-        imageUrl: buildImageUrl(cols[5] || null, cols[6] || null),
-        description: cols[7]?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || null,
-        storeUrl: `${STORE_BASE_URL}/store/${cols[9]}/product/${cols[0]}`,
-      };
-    });
+    return parseProducts(raw);
   } catch (error) {
     console.error("Failed to fetch store products:", error);
     return [];
   }
+}
+
+export async function getStoreProduct(id: number): Promise<StoreProduct | null> {
+  try {
+    const raw = mysqlQuery(
+      `SELECT p.id, p.name, p.price, p.quantity, p.store_id, p.is_cover, p.downloadable_prodcut, p.description, s.name, s.slug
+       FROM products p
+       JOIN stores s ON s.id = p.store_id
+       WHERE p.id = ${id} AND p.product_display = 'on' AND s.is_store_enabled = 1 AND s.is_active = 1
+       LIMIT 1`
+    );
+
+    if (!raw) return null;
+    const products = parseProducts(raw);
+    return products[0] ?? null;
+  } catch (error) {
+    console.error("Failed to fetch store product:", error);
+    return null;
+  }
+}
+
+function parseProducts(raw: string): StoreProduct[] {
+  return raw.split("\n").map((line) => {
+    const cols = line.split("\t");
+    return {
+      id: Number(cols[0]),
+      name: cols[1] ?? "",
+      price: Number(cols[2]) || 0,
+      quantity: Number(cols[3]) || 0,
+      storeId: Number(cols[4]),
+      storeName: cols[8] ?? "Tienda",
+      storeSlug: cols[9] ?? "",
+      imageUrl: buildImageUrl(cols[5] || null, cols[6] || null),
+      description: cols[7]?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || null,
+      storeUrl: `${STORE_BASE_URL}/store/${cols[9]}/product/${cols[0]}`,
+    };
+  });
 }

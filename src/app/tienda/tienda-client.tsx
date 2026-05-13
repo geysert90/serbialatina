@@ -120,7 +120,7 @@ function ProductCard({ product }: { product: StoreProduct }) {
   return (
     <article className="group flex flex-col overflow-hidden rounded-2xl border border-black/8 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-black/12 hover:shadow-lg hover:shadow-black/5">
       {/* Image */}
-      <div className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-black/[0.01] to-black/[0.04]">
+      <Link href={`/tienda/${product.id}`} className="relative aspect-square w-full overflow-hidden bg-gradient-to-br from-black/[0.01] to-black/[0.04]">
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
@@ -149,20 +149,18 @@ function ProductCard({ product }: { product: StoreProduct }) {
             </span>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Info */}
       <div className="flex flex-1 flex-col gap-2 p-3 sm:p-3.5">
         {/* Name */}
         <h3 className="line-clamp-2 text-[0.8rem] font-semibold leading-snug tracking-[-0.015em] text-black sm:text-sm">
-          <a
-            href={product.storeUrl}
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            href={`/tienda/${product.id}`}
             className="transition-colors hover:text-[var(--color-accent)]"
           >
             {product.name}
-          </a>
+          </Link>
         </h3>
 
         {/* Price */}
