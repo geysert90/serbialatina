@@ -4,43 +4,44 @@ import Link from "next/link";
 import { connection } from "next/server";
 
 import { getSessionUser } from "@/lib/auth/session";
-import { getEntriesByUnit, getEntryAudioUrl, getAllUnits } from "@/lib/learn/directus";
-import { LessonFlow } from "@/components/learn/lesson-flow";
+import {
+  getEntriesByUnit,
+  getEntryAudioUrl,
+  getAllUnits,
+} from "@/lib/learn/directus";
+import { getProgress } from "@/lib/learn/progress-store";
+import { ChallengeGame } from "@/components/learn/challenge-game";
 
 export async function generateStaticParams() {
-  try {
-    const { getAllUnits } = await import("@/lib/learn/directus");
-    const units = await getAllUnits("starter");
-    return units.length > 0
-      ? units.map((u: { id: number }) => ({ unitId: String(u.id) }))
-      : [{ unitId: "1" }];
-  } catch {
-    return [{ unitId: "1" }];
-  }
+  return [{ unitId: "1" }]; // dynamic at runtime
 }
 
-export default function UnitLessonPage({
+export const metadata = {
+  title: "Desafío — Aprende Serbio",
+  description:
+    "Modo desafío gamificado para aprender serbio. Gana XP, mantén tus corazones y completa la lección.",
+};
+
+export default function UnitDesafioPage({
   params,
 }: {
   params: Promise<{ unitId: string }>;
 }) {
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <UnitLessonContent params={params} />
+    <Suspense
+      fallback={
+        <section className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 px-4 py-12">
+          <div className="h-8 w-48 animate-pulse rounded-xl bg-amber-100" />
+          <div className="h-64 w-full max-w-sm animate-pulse rounded-3xl bg-amber-50" />
+        </section>
+      }
+    >
+      <DesafioContent params={params} />
     </Suspense>
   );
 }
 
-function LoadingFallback() {
-  return (
-    <section className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 px-4 py-12">
-      <div className="h-8 w-48 animate-pulse rounded-xl bg-amber-100" />
-      <div className="h-64 w-full max-w-sm animate-pulse rounded-3xl bg-amber-50" />
-    </section>
-  );
-}
-
-async function UnitLessonContent({
+async function DesafioContent({
   params,
 }: {
   params: Promise<{ unitId: string }>;
@@ -93,39 +94,45 @@ async function UnitLessonContent({
   }
 
   const units = await getAllUnits("starter");
-  const unitLabel = units.find((u) => u.id === unitIdNum)?.label ?? `Unidad ${unitIdNum}`;
+  const unitLabel =
+    units.find((u) => u.id === unitIdNum)?.label ?? `Unidad ${unitIdNum}`;
+  const progress = getProgress(user.id);
 
   return (
     <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 md:px-8 md:py-12">
       <div className="flex items-center justify-between">
         <div>
           <Link
-            href="/serbio/unidades"
+            href={`/serbio/unidades/${unitIdNum}`}
             className="text-sm text-black/40 transition hover:text-black/70"
           >
-            ← Unidades
+            ← Lección normal
           </Link>
           <h1 className="mt-1 text-2xl font-semibold tracking-[-0.03em] text-black md:text-3xl">
-            {unitLabel}
+            ⚔️ Desafío: {unitLabel}
           </h1>
           <p className="text-sm text-black/45">
-            {entries.length} {entries.length === 1 ? "entrada" : "entradas"}
+            {entries.length} {entries.length === 1 ? "entrada" : "entradas"} ·{" "}
+            {progress.hearts}/{5} ❤️
           </p>
         </div>
-        <Link
-          href={`/serbio/unidades/${unitIdNum}/desafio`}
-          className="flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-200 transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95"
-        >
-          ⚔️ Modo Desafío
-        </Link>
       </div>
 
-      <LessonFlow entries={entries} unitId={unitIdNum} audioUrls={audioUrls} />
+      <ChallengeGame
+        entries={entries}
+        unitId={unitIdNum}
+        audioUrls={audioUrls}
+        initialHearts={progress.hearts}
+      />
 
       <style>{`
         @keyframes confetti-fall {
           0% { opacity: 1; transform: translateY(0) rotate(0deg); }
           100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+        }
+        @keyframes xp-float {
+          0% { opacity: 1; transform: translateY(0) scale(1); }
+          100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
         }
       `}</style>
     </section>

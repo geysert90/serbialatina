@@ -28,8 +28,14 @@ type PostPageProps = {
 };
 
 export async function generateStaticParams() {
-  const slugs = await getAllPostSlugs();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await getAllPostSlugs();
+    return slugs.length > 0
+      ? slugs.map((slug) => ({ slug }))
+      : [{ slug: "ejemplo" }];
+  } catch {
+    return [{ slug: "ejemplo" }];
+  }
 }
 
 export async function generateMetadata({

@@ -1,4 +1,3 @@
-import { cacheLife } from "next/cache";
 
 import { stripHtml } from "@/lib/utils";
 
@@ -430,9 +429,7 @@ export function getPrimaryCategory(
 }
 
 export async function getSiteIdentity(): Promise<SiteIdentity> {
-  "use cache";
 
-  cacheLife("hours");
 
   const root = await wpFetch<WpRoot>("/", {
     fallback: getFallbackSiteIdentity(),
@@ -447,9 +444,7 @@ export async function getSiteIdentity(): Promise<SiteIdentity> {
 }
 
 export async function getAllCategories(): Promise<WpCategory[]> {
-  "use cache";
 
-  cacheLife("minutes");
 
   const categories = await wpFetch<WpCategory[]>(
     "/wp/v2/categories?per_page=100&orderby=count&order=desc",
@@ -460,9 +455,7 @@ export async function getAllCategories(): Promise<WpCategory[]> {
 }
 
 export async function getAllPages(): Promise<WpPage[]> {
-  "use cache";
 
-  cacheLife("hours");
 
   return wpFetch<WpPage[]>(
     "/wp/v2/pages?per_page=50&orderby=menu_order&order=asc&_embed=1",
@@ -471,9 +464,7 @@ export async function getAllPages(): Promise<WpPage[]> {
 }
 
 export async function getAllAuthors(): Promise<WpAuthor[]> {
-  "use cache";
 
-  cacheLife("minutes");
 
   return wpFetch<WpAuthor[]>(
     "/wp/v2/users?per_page=50&orderby=name&order=asc",
@@ -482,9 +473,7 @@ export async function getAllAuthors(): Promise<WpAuthor[]> {
 }
 
 export async function getLatestPosts(limit = 6): Promise<WpPost[]> {
-  "use cache";
 
-  cacheLife("minutes");
 
   return wpFetch<WpPost[]>(
     `/wp/v2/posts?per_page=${limit}&orderby=date&order=desc&_embed=1`,
@@ -493,9 +482,7 @@ export async function getLatestPosts(limit = 6): Promise<WpPost[]> {
 }
 
 export async function getFeaturedPosts(limit = 6): Promise<WpPost[]> {
-  "use cache";
 
-  cacheLife("minutes");
 
   return wpFetch<WpPost[]>(
     `/wp/v2/posts?sticky=true&per_page=${limit}&orderby=date&order=desc&_embed=1`,
@@ -504,9 +491,7 @@ export async function getFeaturedPosts(limit = 6): Promise<WpPost[]> {
 }
 
 export async function getCategoryBySlug(slug: string): Promise<WpCategory | null> {
-  "use cache";
 
-  cacheLife("hours");
 
   const categories = await wpFetch<WpCategory[]>(
     `/wp/v2/categories?slug=${encodeURIComponent(slug)}`,
@@ -520,9 +505,7 @@ export async function getPostsByCategoryId(
   categoryId: number,
   limit = 6,
 ): Promise<WpPost[]> {
-  "use cache";
 
-  cacheLife("minutes");
 
   return wpFetch<WpPost[]>(
     `/wp/v2/posts?categories=${categoryId}&per_page=${limit}&orderby=date&order=desc&_embed=1`,
@@ -531,9 +514,7 @@ export async function getPostsByCategoryId(
 }
 
 export async function getPostBySlug(slug: string): Promise<WpPost | null> {
-  "use cache";
 
-  cacheLife("minutes");
 
   const posts = await wpFetch<WpPost[]>(
     `/wp/v2/posts?slug=${encodeURIComponent(slug)}&_embed=1`,
@@ -548,9 +529,7 @@ export async function getRelatedPosts(
   excludePostId: number,
   limit = 3,
 ): Promise<WpPost[]> {
-  "use cache";
 
-  cacheLife("minutes");
 
   if (!categoryIds.length) {
     return [];
@@ -647,9 +626,7 @@ export function getCommentExcerpt(comment: WpComment, maxLength = 140): string {
 }
 
 export async function getPageBySlug(slug: string): Promise<WpPage | null> {
-  "use cache";
 
-  cacheLife("hours");
 
   const pages = await wpFetch<WpPage[]>(
     `/wp/v2/pages?slug=${encodeURIComponent(slug)}&_embed=1`,
@@ -660,9 +637,7 @@ export async function getPageBySlug(slug: string): Promise<WpPage | null> {
 }
 
 export async function getSiteChromeData(): Promise<SiteChromeData> {
-  "use cache";
 
-  cacheLife("hours");
 
   const [site, categories, pages] = await Promise.all([
     getSiteIdentity(),
@@ -711,9 +686,7 @@ export async function getSiteChromeData(): Promise<SiteChromeData> {
 }
 
 export async function getHomePageData(): Promise<HomePageData> {
-  "use cache";
 
-  cacheLife("minutes");
 
   const [site, categories, pages, authors, latestPosts, featuredPosts] = await Promise.all([
     getSiteIdentity(),
@@ -774,9 +747,7 @@ export async function getHomePageData(): Promise<HomePageData> {
 }
 
 export async function getAllPostSlugs(): Promise<string[]> {
-  "use cache";
 
-  cacheLife("days");
 
   const posts = await wpFetch<Array<Pick<WpPost, "slug">>>(
     "/wp/v2/posts?per_page=100&_fields=slug",
@@ -787,9 +758,7 @@ export async function getAllPostSlugs(): Promise<string[]> {
 }
 
 export async function getAllPageSlugs(): Promise<string[]> {
-  "use cache";
 
-  cacheLife("days");
 
   const pages = await wpFetch<Array<Pick<WpPage, "slug">>>(
     "/wp/v2/pages?per_page=100&_fields=slug",
@@ -800,9 +769,7 @@ export async function getAllPageSlugs(): Promise<string[]> {
 }
 
 export async function getAllCategorySlugs(): Promise<string[]> {
-  "use cache";
 
-  cacheLife("days");
 
   const categories = await wpFetch<Array<Pick<WpCategory, "slug">>>(
     "/wp/v2/categories?per_page=100&_fields=slug",

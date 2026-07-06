@@ -1,6 +1,5 @@
 import { get as httpsGet } from "node:https";
 
-import { cacheLife } from "next/cache";
 
 export type JoobleJob = {
   id: string | number;
@@ -422,9 +421,7 @@ export async function searchJoobleJobs({
   radius = "80",
   resultOnPage,
 }: JoobleSearchParams): Promise<JoobleSearchResult> {
-  "use cache";
 
-  cacheLife("hours");
 
   const normalizedPage = normalizePage(page);
   const perPage = normalizePerPage(resultOnPage);
@@ -501,9 +498,7 @@ export async function searchInfostudJobs({
   page,
   resultOnPage,
 }: JoobleSearchParams): Promise<JoobleSearchResult> {
-  "use cache";
 
-  cacheLife("hours");
 
   const normalizedPage = normalizePage(page);
   const perPage = normalizePerPage(resultOnPage);
@@ -545,9 +540,7 @@ export async function searchInfostudJobs({
 }
 
 export async function searchSerbiaJobs(params: JoobleSearchParams): Promise<JoobleSearchResult> {
-  "use cache";
 
-  cacheLife("hours");
 
   const versionedParams = { ...params, cacheVersion: params.cacheVersion ?? JOBS_SOURCE_CACHE_VERSION };
   const [joobleResult, infostudResult] = await Promise.all([

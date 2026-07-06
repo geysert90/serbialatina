@@ -305,10 +305,9 @@ function StatCard({ value, label }: { value: string; label: string }) {
   );
 }
 
-    async function countCompletedForUnit(userId: string, unitId: number): Promise<number> {
+    async function countCompletedForUnit(userId: string, _unitId: number): Promise<number> {
       try {
-        const entries = await getEntriesByUnit(unitId);
-        return countCompleted(userId, entries.map((e) => e.id));
+        return countCompleted(userId);
       } catch {
         return 0;
       }

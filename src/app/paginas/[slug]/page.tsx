@@ -10,8 +10,14 @@ type CmsPageProps = {
 };
 
 export async function generateStaticParams() {
-  const slugs = await getAllPageSlugs();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await getAllPageSlugs();
+    return slugs.length > 0
+      ? slugs.map((slug) => ({ slug }))
+      : [{ slug: "tienda" }];
+  } catch {
+    return [{ slug: "tienda" }];
+  }
 }
 
 export async function generateMetadata({

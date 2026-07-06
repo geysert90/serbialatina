@@ -11,6 +11,17 @@ import {
 } from "@/lib/learn/reading-directus";
 import { ReadingReader } from "@/components/learn/reading-reader";
 
+export async function generateStaticParams() {
+  try {
+    const sources = await getDirectusReadingSources("revista");
+    return sources.length > 0
+      ? sources.map((s: { slug: string }) => ({ slug: s.slug }))
+      : [{ slug: "jutro-na-dorcolu" }];
+  } catch {
+    return [{ slug: "jutro-na-dorcolu" }];
+  }
+}
+
 export const metadata: Metadata = {
   title: "Revista · Lectura",
   description:

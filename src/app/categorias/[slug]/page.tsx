@@ -14,8 +14,14 @@ type CategoryPageProps = {
 };
 
 export async function generateStaticParams() {
-  const slugs = await getAllCategorySlugs();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await getAllCategorySlugs();
+    return slugs.length > 0
+      ? slugs.map((slug) => ({ slug }))
+      : [{ slug: "noticias" }]; // fallback for build
+  } catch {
+    return [{ slug: "noticias" }];
+  }
 }
 
 export async function generateMetadata({

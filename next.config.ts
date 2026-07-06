@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
+  // cacheComponents disabled — project relies on external APIs not available at build time
   async redirects() {
     return [
       {

@@ -10,25 +10,33 @@ import { ProductDetailClient } from "./product-detail-client";
 
 type Props = { params: Promise<{ productId: string }> };
 
+export async function generateStaticParams() {
+  return [{ productId: "1" }]; // fallback — products change at runtime
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { productId } = await params;
   const id = Number(productId);
   if (!Number.isFinite(id)) return { title: "Producto no encontrado" };
 
-  const product = await getStoreProductEnriched(id);
-  if (!product) return { title: "Producto no encontrado" };
+  try {
+    const product = await getStoreProductEnriched(id);
+    if (!product) return { title: "Producto no encontrado" };
 
-  return {
-    title: `${product.name} · Tienda`,
-    description: product.description ?? `Compra ${product.name} en Serbia Latina.`,
-    alternates: { canonical: toAbsoluteUrl(`/tienda/${id}`) },
-    openGraph: {
-      title: `${product.name} · Serbia Latina`,
+    return {
+      title: `${product.name} · Tienda`,
       description: product.description ?? `Compra ${product.name} en Serbia Latina.`,
-      url: toAbsoluteUrl(`/tienda/${id}`),
-      images: product.imageUrl ? [product.imageUrl] : [],
-    },
-  };
+      alternates: { canonical: toAbsoluteUrl(`/tienda/${id}`) },
+      openGraph: {
+        title: `${product.name} · Serbia Latina`,
+        description: product.description ?? `Compra ${product.name} en Serbia Latina.`,
+        url: toAbsoluteUrl(`/tienda/${id}`),
+        images: product.imageUrl ? [product.imageUrl] : [],
+      },
+    };
+  } catch {
+    return { title: "Producto · Tienda" };
+  }
 }
 
 export default function ProductDetailPage({ params }: Props) {
