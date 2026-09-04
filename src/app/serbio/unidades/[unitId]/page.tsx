@@ -7,18 +7,6 @@ import { getSessionUser } from "@/lib/auth/session";
 import { getEntriesByUnit, getEntryAudioUrl, getAllUnits } from "@/lib/learn/directus";
 import { LessonFlow } from "@/components/learn/lesson-flow";
 
-export async function generateStaticParams() {
-  try {
-    const { getAllUnits } = await import("@/lib/learn/directus");
-    const units = await getAllUnits("starter");
-    return units.length > 0
-      ? units.map((u: { id: number }) => ({ unitId: String(u.id) }))
-      : [{ unitId: "1" }];
-  } catch {
-    return [{ unitId: "1" }];
-  }
-}
-
 export default function UnitLessonPage({
   params,
 }: {
@@ -112,12 +100,6 @@ async function UnitLessonContent({
             {entries.length} {entries.length === 1 ? "entrada" : "entradas"}
           </p>
         </div>
-        <Link
-          href={`/serbio/unidades/${unitIdNum}/desafio`}
-          className="flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-200 transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95"
-        >
-          ⚔️ Modo Desafío
-        </Link>
       </div>
 
       <LessonFlow entries={entries} unitId={unitIdNum} audioUrls={audioUrls} />

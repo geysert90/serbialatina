@@ -1,4 +1,4 @@
-const WC_API_BASE = "https://admin.segun2idioma.com/wp-json/wc/v3";
+const WC_API_BASE = "https://admin.serbialatina.com/wp-json/wc/v3";
 const WC_CONSUMER_KEY = "ck_c699ba160c2fd68d9da31ad7329e24ff3e069f16";
 const WC_CONSUMER_SECRET = "cs_df4660a82753fc483e50fdbaa4733536c672af9c";
 
@@ -66,7 +66,7 @@ export async function getStoreProducts(): Promise<StoreProduct[]> {
       storeSlug: p.store?.slug ?? "",
       imageUrl: p.images?.[0]?.src ?? null,
       description: p.short_description?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || null,
-      storeUrl: p.store?.permalink ?? `https://admin.segun2idioma.com/tienda/${p.store?.slug ?? ""}`,
+      storeUrl: p.store?.permalink ?? `https://admin.serbialatina.com/tienda/${p.store?.slug ?? ""}`,
       permalink: p.permalink,
     }));
   } catch (error) {
@@ -91,7 +91,7 @@ export async function getStoreProduct(id: number): Promise<StoreProduct | null> 
       storeSlug: p.store?.slug ?? "",
       imageUrl: p.images?.[0]?.src ?? null,
       description: p.short_description?.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || null,
-      storeUrl: p.store?.permalink ?? `https://admin.segun2idioma.com/tienda/${p.store?.slug ?? ""}`,
+      storeUrl: p.store?.permalink ?? `https://admin.serbialatina.com/tienda/${p.store?.slug ?? ""}`,
       permalink: p.permalink,
     };
   } catch (error) {
@@ -120,7 +120,7 @@ export async function getProductCategories(): Promise<ProductCategory[]> {
 }
 
 // ─── Store Enrichment ──────────────────────────────────────────
-const SL_API_BASE = "https://admin.segun2idioma.com/wp-json/sl/v1";
+const SL_API_BASE = "https://admin.serbialatina.com/wp-json/sl/v1";
 
 async function enrichWithStoreData(products: StoreProduct[]): Promise<StoreProduct[]> {
   return Promise.all(

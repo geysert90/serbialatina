@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const SL_API_BASE = "https://admin.segun2idioma.com/wp-json/sl/v1";
+const SL_API_BASE = "https://admin.serbialatina.com/wp-json/sl/v1";
 const SL_API_KEY = "sl_marketplace_2026";
 
 export async function GET(request: Request) {

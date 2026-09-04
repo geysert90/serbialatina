@@ -13,16 +13,14 @@ type CategoryPageProps = {
   params: Promise<{ slug: string }>;
 };
 
+
 export async function generateStaticParams() {
-  try {
-    const slugs = await getAllCategorySlugs();
-    return slugs.length > 0
-      ? slugs.map((slug) => ({ slug }))
-      : [{ slug: "noticias" }]; // fallback for build
-  } catch {
-    return [{ slug: "noticias" }];
-  }
+  const slugs = await getAllCategorySlugs();
+  // Limitar el prerender a los primeros 20 (resto on-demand) para evitar
+  // USE_CACHE_TIMEOUT con el WP-API lento en builds
+  return slugs.slice(0, 20).map((slug) => ({ slug }));
 }
+
 
 export async function generateMetadata({
   params,
@@ -89,7 +87,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         <EmptyCollection
           title={`La categoría ${category.name} no tiene entradas todavía`}
           description="Esta sección se llenará automáticamente cuando publiques contenido."
-          href="https://admin.segun2idioma.com"
+          href="https://admin.serbialatina.com"
         />
       )}
     </section>

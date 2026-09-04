@@ -27,6 +27,13 @@ function isMobileDevice(): boolean {
   return window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 900;
 }
 
+function isIOSDevice(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const ua = window.navigator.userAgent || "";
+  return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 function getDismissedAt(): number {
   if (typeof window === "undefined") return 0;
   return Number(window.sessionStorage.getItem(DISMISS_KEY) ?? "0") || 0;
@@ -37,6 +44,7 @@ export function PwaInstallPrompt() {
   const [isMobile, setIsMobile] = useState<boolean>(() => isMobileDevice());
   const [isInstalled, setIsInstalled] = useState<boolean>(() => isStandaloneMode());
   const [installHint, setInstallHint] = useState(false);
+  const [isIOS, setIsIOS] = useState<boolean>(() => isIOSDevice());
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   const closePrompt = useCallback(() => {
@@ -48,6 +56,12 @@ export function PwaInstallPrompt() {
     const deferred = deferredPromptRef.current;
 
     if (!deferred) {
+      setInstallHint(true);
+      window.sessionStorage.setItem(DISMISS_KEY, String(Date.now()));
+      return;
+    }
+
+    if (isIOS) {
       setInstallHint(true);
       window.sessionStorage.setItem(DISMISS_KEY, String(Date.now()));
       return;
@@ -119,11 +133,13 @@ export function PwaInstallPrompt() {
 
   const title = useMemo(() => {
     if (installHint) {
-      return "Tu navegador no mostró la instalación automática";
+      return isIOS
+        ? "Instala Serbia Latina en tu iPhone"
+        : "Tu navegador no mostró la instalación automática";
     }
 
     return "¿Desea instalar la aplicación de Serbia Latina?";
-  }, [installHint]);
+  }, [installHint, isIOS]);
 
   if (!isMobile || isInstalled || !visible) {
     return null;
@@ -154,7 +170,14 @@ export function PwaInstallPrompt() {
               {title}
             </h2>
             <p className="mt-1.5 max-w-prose text-[0.82rem] leading-5 text-slate-700">
-              Acceso rápido a noticias y comunidad desde la pantalla de inicio.
+              {installHint && isIOS ? (
+                <>
+                  Toca el botón <strong>Compartir</strong> (el cuadrado con la flecha
+                  hacia arriba) en Safari y luego <strong>"Añadir a pantalla de inicio"</strong>.
+                </>
+              ) : (
+                "Acceso rápido a noticias y comunidad desde la pantalla de inicio."
+              )}
             </p>
           </div>
 

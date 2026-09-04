@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const API = "https://admin.segun2idioma.com/wp-json/sl/v1";
+const API = "https://admin.serbialatina.com/wp-json/sl/v1";
 
 type Tab = "productos" | "ordenes" | "cupones" | "tienda" | "reportes";
 

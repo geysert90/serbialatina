@@ -9,7 +9,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 const WORDPRESS_API_BASE = (
-  process.env.NEXT_PUBLIC_WORDPRESS_API_URL ?? "https://admin.segun2idioma.com/wp-json"
+  process.env.NEXT_PUBLIC_WORDPRESS_API_URL ?? "https://admin.serbialatina.com/wp-json"
 ).replace(/\/$/, "");
 
 const CATEGORY_SLUGS = (process.env.PUSH_NOTIFY_CATEGORY_SLUGS ?? "noticias,eventos")

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const WC_API_BASE = "https://admin.segun2idioma.com/wp-json/wc/v3";
+const WC_API_BASE = "https://admin.serbialatina.com/wp-json/wc/v3";
 const WC_CONSUMER_KEY = "ck_c699ba160c2fd68d9da31ad7329e24ff3e069f16";
 const WC_CONSUMER_SECRET = "cs_df4660a82753fc483e50fdbaa4733536c672af9c";
 

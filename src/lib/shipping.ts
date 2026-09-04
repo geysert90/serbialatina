@@ -1,5 +1,5 @@
 /**
- * Shipping configuration — defaults synced from WooCommerce (admin.segun2idioma.com).
+ * Shipping configuration — defaults synced from WooCommerce (admin.serbialatina.com).
  *
  * The checkout page fetches live values server-side; client components use these defaults
  * which match the real WooCommerce shipping zone "Local".
@@ -29,7 +29,7 @@ export const DEFAULT_SHIPPING: ShippingConfig = {
  * Use in server components (page.tsx).
  */
 export async function fetchShippingConfig(): Promise<ShippingConfig> {
-  const WC_API = "https://admin.segun2idioma.com/wp-json/wc/v3";
+  const WC_API = "https://admin.serbialatina.com/wp-json/wc/v3";
   const WC_USER = process.env.WORDPRESS_API_USERNAME || "darkness";
   const WC_PASS = process.env.WORDPRESS_API_PASSWORD || "";
 

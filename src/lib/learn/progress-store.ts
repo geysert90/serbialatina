@@ -5,10 +5,8 @@ import { resolve } from "node:path";
 
 import { computeStreak } from "./streak";
 import type { UserProgress, UnitProgress } from "./types";
-import { MAX_HEARTS } from "./types";
 
 const DATA_DIR = resolve(process.cwd(), "data", "learn-progress");
-const HEARTS_REFILL_MINUTES = 30; // 1 heart every 30 minutes
 
 function ensureDataDir(): void {
   mkdirSync(DATA_DIR, { recursive: true });
@@ -26,8 +24,6 @@ function emptyProgress(): UserProgress {
     completedUnits: [],
     streak: { count: 0, lastDate: null },
     xp: 0,
-    hearts: MAX_HEARTS,
-    heartsRefillAt: null,
   };
 }
 
@@ -44,8 +40,6 @@ function readProgress(userId: string): UserProgress {
         lastDate: parsed.streak?.lastDate ?? null,
       },
       xp: parsed.xp ?? 0,
-      hearts: parsed.hearts ?? MAX_HEARTS,
-      heartsRefillAt: parsed.heartsRefillAt ?? null,
     };
   } catch {
     return emptyProgress();
@@ -57,38 +51,11 @@ function writeProgress(userId: string, progress: UserProgress): void {
   writeFileSync(filePath(userId), JSON.stringify(progress, null, 2), "utf-8");
 }
 
-/** Recalculate hearts based on elapsed time since last refill. */
-function refillHeartsIfNeeded(progress: UserProgress): UserProgress {
-  if (progress.hearts >= MAX_HEARTS) {
-    progress.heartsRefillAt = null;
-    return progress;
-  }
-
-  if (!progress.heartsRefillAt) return progress;
-
-  const elapsed = Date.now() - new Date(progress.heartsRefillAt).getTime();
-  const heartsToAdd = Math.floor(elapsed / (HEARTS_REFILL_MINUTES * 60 * 1000));
-
-  if (heartsToAdd > 0) {
-    progress.hearts = Math.min(progress.hearts + heartsToAdd, MAX_HEARTS);
-    if (progress.hearts >= MAX_HEARTS) {
-      progress.heartsRefillAt = null;
-    } else {
-      progress.heartsRefillAt = new Date(
-        Date.now() - (elapsed % (HEARTS_REFILL_MINUTES * 60 * 1000))
-      ).toISOString();
-    }
-  }
-
-  return progress;
-}
-
 // ── Public API ────────────────────────────────────────────────────────
 
 /** Get the full progress object for a user (WordPress user ID). */
 export function getProgress(userId: string): UserProgress {
-  const progress = readProgress(userId);
-  return refillHeartsIfNeeded(progress);
+  return readProgress(userId);
 }
 
 /** Mark a single entry as completed. Awards 10 XP. Returns updated progress. */
@@ -132,72 +99,34 @@ export function getUnitProgress(
   totalEntries: number,
 ): UnitProgress {
   const progress = readProgress(userId);
-  const completed = progress.completedEntries.filter((entryId) => {
-    // We don't have the full entry list here, so count direct matches
-    return typeof entryId === "number";
-  }).length;
 
-  // More accurate: count from completedEntries that belong to this unit
-  // For now use a simplified approach
+  // Entries in this unit that are marked complete.
+  // We approximate by intersecting completedEntries with what we know.
+  // For accurate per-unit tracking, the page component passes the entries list.
+  // Here we just return the structure — the caller provides the actual count.
+
   return {
     unitId,
-    completed: progress.completedEntries.length,
+    completed: 0, // filled by caller
     total: totalEntries,
-    percentage:
-      totalEntries > 0
-        ? Math.round((progress.completedEntries.length / totalEntries) * 100)
-        : 0,
+    percentage: 0, // filled by caller
   };
 }
 
-/** Count completed entries for a user. */
-export function countCompleted(userId: string): number {
+/** Check if all entries in a unit are completed. */
+export function isUnitComplete(
+  userId: string,
+  unitEntryIds: number[],
+): boolean {
   const progress = readProgress(userId);
-  return progress.completedEntries.length;
+  return unitEntryIds.every((id) => progress.completedEntries.includes(id));
 }
 
-export function countCompletedForUnit(
+/** Count how many of the given entries the user has completed. */
+export function countCompleted(
   userId: string,
-  _unitId: number,
+  entryIds: number[],
 ): number {
   const progress = readProgress(userId);
-  return progress.completedEntries.length;
-}
-
-/** Deduct a heart. Returns { hearts, gameOver } or null if already at 0. */
-export function deductHeart(
-  userId: string,
-): { hearts: number; gameOver: boolean } | null {
-  const progress = refillHeartsIfNeeded(readProgress(userId));
-
-  if (progress.hearts <= 0) {
-    return { hearts: 0, gameOver: true };
-  }
-
-  progress.hearts -= 1;
-
-  // Start refill timer if not already running and below max
-  if (progress.hearts < MAX_HEARTS && !progress.heartsRefillAt) {
-    progress.heartsRefillAt = new Date().toISOString();
-  }
-
-  writeProgress(userId, progress);
-  return { hearts: progress.hearts, gameOver: progress.hearts <= 0 };
-}
-
-/** Add XP to user progress. */
-export function addXp(userId: string, amount: number): UserProgress {
-  const progress = readProgress(userId);
-  progress.xp += amount;
-  writeProgress(userId, progress);
-  return progress;
-}
-
-/** Refill all hearts (e.g., via shop or ad). */
-export function refillHearts(userId: string): UserProgress {
-  const progress = readProgress(userId);
-  progress.hearts = MAX_HEARTS;
-  progress.heartsRefillAt = null;
-  writeProgress(userId, progress);
-  return progress;
+  return entryIds.filter((id) => progress.completedEntries.includes(id)).length;
 }

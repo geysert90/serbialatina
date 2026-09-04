@@ -351,8 +351,3 @@ button {
     border-radius: 26px;
   }
 }
-
-@keyframes xp-float {
-  0% { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
-}

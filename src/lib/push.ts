@@ -7,7 +7,7 @@ import webPush from "web-push";
 import { stripHtml } from "@/lib/utils";
 
 const WORDPRESS_API_BASE = (
-  process.env.NEXT_PUBLIC_WORDPRESS_API_URL ?? "https://admin.segun2idioma.com/wp-json"
+  process.env.NEXT_PUBLIC_WORDPRESS_API_URL ?? "https://admin.serbialatina.com/wp-json"
 ).replace(/\/$/, "");
 
 const PUSH_VAPID_PUBLIC_KEY = process.env.PUSH_VAPID_PUBLIC_KEY?.trim();

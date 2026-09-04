@@ -27,16 +27,14 @@ type PostPageProps = {
   }>;
 };
 
+
 export async function generateStaticParams() {
-  try {
-    const slugs = await getAllPostSlugs();
-    return slugs.length > 0
-      ? slugs.map((slug) => ({ slug }))
-      : [{ slug: "ejemplo" }];
-  } catch {
-    return [{ slug: "ejemplo" }];
-  }
+  const slugs = await getAllPostSlugs();
+  // Limitar el prerender a los primeros 20 (resto on-demand) para evitar
+  // USE_CACHE_TIMEOUT con el WP-API lento en builds
+  return slugs.slice(0, 20).map((slug) => ({ slug }));
 }
+
 
 export async function generateMetadata({
   params,

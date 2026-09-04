@@ -47,8 +47,6 @@ export type UnitInfo = {
 
 // ── User progress ─────────────────────────────────────────────────────────
 
-export const MAX_HEARTS = 5;
-
 export type UserProgress = {
   completedEntries: number[];
   completedUnits: number[];
@@ -57,8 +55,6 @@ export type UserProgress = {
     lastDate: string | null; // "YYYY-MM-DD"
   };
   xp: number;
-  hearts: number; // 0–MAX_HEARTS
-  heartsRefillAt: string | null; // ISO timestamp when hearts refill
 };
 
 export type UnitProgress = {
