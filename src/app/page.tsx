@@ -13,6 +13,7 @@ import {
 import { HomeProductsSection } from "@/components/home-products-section";
 import { FeaturedNewsSection } from "@/components/featured-news-section";
 import { RentalsSection } from "@/components/rentals-section";
+import { SHOW_WIP_SECTIONS } from "@/lib/feature-flags";
 import { getStoreProductsEnriched } from "@/lib/store-db";
 import {
   JOBS_SOURCE_CACHE_VERSION,
@@ -256,7 +257,7 @@ function CategoryShowcaseSection({
 
 export default async function Home() {
   const data = await getHomePageData();
-  const products = await getStoreProductsEnriched();
+  const products = SHOW_WIP_SECTIONS ? await getStoreProductsEnriched() : [];
   const coverPosts = Array.from({ length: 3 }, (_, index) => data.latestPosts[index] ?? null);
   const leadCoverPost = coverPosts[0];
   const stackedCoverPosts = coverPosts.slice(1);
@@ -314,7 +315,7 @@ export default async function Home() {
             ))}
           </div>
 
-          <HomeProductsSection products={products} />
+          {SHOW_WIP_SECTIONS && <HomeProductsSection products={products} />}
         </div>
 
         <aside className="grid gap-5">

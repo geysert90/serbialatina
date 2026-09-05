@@ -7,6 +7,7 @@ import { AuthModalButton } from "@/components/auth/auth-modal";
 import { getSessionUser, type SessionUser } from "@/lib/auth/session";
 import { MobileMenu } from "@/components/mobile-menu";
 import { CartButton } from "@/components/cart-button";
+import { SHOW_WIP_SECTIONS } from "@/lib/feature-flags";
 import type { NavigationItem, SiteChromeData } from "@/lib/wordpress";
 
 function NavItem({
@@ -55,6 +56,10 @@ function normalizeLabel(value: string): string {
 
 function shouldHideMainNavItem(item: NavigationItem): boolean {
   const label = normalizeLabel(item.label);
+
+  if (!SHOW_WIP_SECTIONS && label.includes("tienda")) {
+    return true;
+  }
 
   return ["pagina de ejemplo", "carrito", "eventos", "trabajos", "tramites en serbia"].includes(label);
 }
@@ -287,11 +292,13 @@ export function SiteShell({
   }
 
   // Add hardcoded items not in WordPress nav
-  mobileMenuItems.push({
-    type: "link",
-    label: "Aprender Serbio",
-    href: "/serbio",
-  });
+  if (SHOW_WIP_SECTIONS) {
+    mobileMenuItems.push({
+      type: "link",
+      label: "Aprender Serbio",
+      href: "/serbio",
+    });
+  }
 
   return (
     <div className="relative isolate min-h-screen">
@@ -354,12 +361,14 @@ export function SiteShell({
                 <NavItem key={`${item.label}-${item.href}`} item={item} />
               ),
             )}
-            <Link
-              href="/serbio"
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-black/65 transition hover:bg-amber-50 hover:text-amber-800"
-            >
-              Aprender Serbio 🇷🇸
-            </Link>
+            {SHOW_WIP_SECTIONS && (
+              <Link
+                href="/serbio"
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-black/65 transition hover:bg-amber-50 hover:text-amber-800"
+              >
+                Aprender Serbio 🇷🇸
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center gap-1.5 md:gap-3">
@@ -385,24 +394,28 @@ export function SiteShell({
             </div>
 
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <Link
-                href="/serbio"
-                className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
-              >
-                Serbio
-              </Link>
-              <Link
-                href="/serbio/revista"
-                className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
-              >
-                Revista
-              </Link>
-              <Link
-                href="/serbio/progreso"
-                className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
-              >
-                Progreso
-              </Link>
+              {SHOW_WIP_SECTIONS && (
+                <>
+                  <Link
+                    href="/serbio"
+                    className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
+                  >
+                    Serbio
+                  </Link>
+                  <Link
+                    href="/serbio/revista"
+                    className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
+                  >
+                    Revista
+                  </Link>
+                  <Link
+                    href="/serbio/progreso"
+                    className="rounded-full border border-black/8 bg-white/70 px-3 py-1.5 text-black/65 transition hover:bg-white hover:text-black"
+                  >
+                    Progreso
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

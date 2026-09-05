@@ -64,19 +64,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 md:px-8 md:py-12">
-      <div className="panel space-y-5 p-6 md:p-8">
-        <div className="eyebrow w-fit">{category.count} publicaciones</div>
-        <div className="space-y-3">
-          <h1 className="text-4xl font-semibold tracking-[-0.05em] text-black md:text-6xl">
-            {category.name}
-          </h1>
-          <p className="max-w-3xl text-lg leading-8 text-black/65">
-            {category.description?.trim() ||
-              `Todas las publicaciones de ${category.name} en Serbia Latina.`}
-          </p>
-        </div>
-      </div>
-
       {posts.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {posts.map((post) => (
