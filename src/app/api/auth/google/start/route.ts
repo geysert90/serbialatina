@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 
 import { getBaseSiteUrl } from "@/lib/utils";
 
@@ -20,6 +20,7 @@ function getGoogleConfig() {
 }
 
 export async function GET() {
+  await connection();
   try {
     const { clientId, redirectUri } = getGoogleConfig();
     const state = randomBytes(24).toString("base64url");

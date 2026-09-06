@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { connection, NextRequest, NextResponse } from "next/server";
 
 import { createSession } from "@/lib/auth/session";
 import { authenticateGoogleUser } from "@/lib/auth/user-store";
@@ -32,6 +32,7 @@ function getGoogleConfig() {
 }
 
 export async function GET(request: NextRequest) {
+  await connection();
   const base = getBaseSiteUrl();
   const fail = (reason: string) =>
     NextResponse.redirect(new URL(`/acceso?error=${encodeURIComponent(reason)}`, base));
